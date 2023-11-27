@@ -5,7 +5,7 @@ class NumberPublisherNode : public rclcpp::Node{
     public:
         NumberPublisherNode() : Node("number_publisher"){
             publisher_ = create_publisher<example_interfaces::msg::Int64>("number", 10);
-            timer_ = create_wall_timer(std::chrono::milliseconds(500), std::bind(&NumberPublisherNode::publishNumber, this));
+            timer_ = create_wall_timer(std::chrono::milliseconds(1000), std::bind(&NumberPublisherNode::publishNumber, this));
             RCLCPP_INFO(get_logger(), "Number publisher se ha iniciado correctamente.");
         }
     private:
