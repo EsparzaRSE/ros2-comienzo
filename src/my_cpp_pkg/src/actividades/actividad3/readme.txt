@@ -1,0 +1,1 @@
+Funciona tanto usando el nodo call_reset_counter3 como haciendo la llamada usando rqt services

@@ -32,6 +32,15 @@ ament_target_dependencies(add_two_ints_server rclcpp example_interfaces)
 add_executable(add_two_ints_client src/add_two_ints_client.cpp)
 ament_target_dependencies(add_two_ints_client rclcpp example_interfaces)
 
+add_executable(number_publisher3 src/actividades/actividad3/number_publisher3.cpp)
+ament_target_dependencies(number_publisher3 rclcpp example_interfaces)
+
+add_executable(number_counter3 src/actividades/actividad3/number_counter3.cpp)
+ament_target_dependencies(number_counter3 rclcpp example_interfaces)
+
+add_executable(call_reset_counter3 src/actividades/actividad3/call_reset_counter3.cpp)
+ament_target_dependencies(call_reset_counter3 rclcpp example_interfaces)
+
 install(TARGETS 
   cpp_node
   robot_news_station
@@ -40,6 +49,9 @@ install(TARGETS
   number_counter
   add_two_ints_server
   add_two_ints_client
+  number_publisher3
+  number_counter3
+  call_reset_counter3
   DESTINATION lib/${PROJECT_NAME}
 )
 
