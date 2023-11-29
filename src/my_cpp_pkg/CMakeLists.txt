@@ -9,6 +9,7 @@ endif()
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(example_interfaces REQUIRED)
+find_package(my_robot_interfaces REQUIRED)
 
 # crear el ejecutable e instalar el nodo
 add_executable(cpp_node src/my_first_node.cpp)
@@ -41,6 +42,9 @@ ament_target_dependencies(number_counter3 rclcpp example_interfaces)
 add_executable(call_reset_counter3 src/actividades/actividad3/call_reset_counter3.cpp)
 ament_target_dependencies(call_reset_counter3 rclcpp example_interfaces)
 
+add_executable(hardware_status_publisher src/hw_status_publisher.cpp)
+ament_target_dependencies(hardware_status_publisher rclcpp my_robot_interfaces)
+
 install(TARGETS 
   cpp_node
   robot_news_station
@@ -52,6 +56,7 @@ install(TARGETS
   number_publisher3
   number_counter3
   call_reset_counter3
+  hardware_status_publisher
   DESTINATION lib/${PROJECT_NAME}
 )
 
