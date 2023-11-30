@@ -33,7 +33,7 @@ class BatteryNode : public rclcpp::Node{
             
             try{
                 auto response{future.get()};
-                RCLCPP_INFO(get_logger(), "LLamada al servicio correcta");
+                RCLCPP_INFO(get_logger(), "Llamada al servicio correcta");
             }
             catch(const std::exception &e){
                 RCLCPP_ERROR(get_logger(), "La llamada al servicio ha fallado.");

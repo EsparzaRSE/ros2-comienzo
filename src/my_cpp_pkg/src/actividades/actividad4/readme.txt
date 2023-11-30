@@ -6,3 +6,7 @@ ros2 topic echo led_panel_state
 
 El topic informará si la batería está baja o tiene niveles correctos a intervalos de 2 segundos.
 
+--Mejorado--
+
+Se ha añadido al msg un int64[] para que aparezca el estado de los leds al hacer el topic echo
+

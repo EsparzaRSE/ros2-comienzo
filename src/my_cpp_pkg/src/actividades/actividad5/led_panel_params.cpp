@@ -2,17 +2,20 @@
 #include "my_robot_interfaces/msg/led_states.hpp"
 #include "my_robot_interfaces/srv/set_led.hpp"
  
-class LedPanelNode : public rclcpp::Node{ 
+class LedPanelParamsNode : public rclcpp::Node{ 
     public:
-        LedPanelNode() : Node("led_panel"){ 
+        LedPanelParamsNode() : Node("led_panel_params"){ 
+            declare_parameter("led_states", std::vector<int64_t>{0,0,0});
+            led_panel_ = get_parameter("led_states").as_integer_array();
             server_ = create_service<my_robot_interfaces::srv::SetLed>("set_led", 
-                      std::bind(&LedPanelNode::callback_led_panel, this, std::placeholders::_1, std::placeholders::_2));
+                      std::bind(&LedPanelParamsNode::callback_led_panel, this, std::placeholders::_1, std::placeholders::_2));
             publisher_ = create_publisher<my_robot_interfaces::msg::LedStates>("led_panel_state", 10);
-            timer_ = create_wall_timer(std::chrono::seconds(2), std::bind(&LedPanelNode::publishLedPanelStatus, this));
+            timer_ = create_wall_timer(std::chrono::seconds(2), std::bind(&LedPanelParamsNode::publishLedPanelStatus, this));
             RCLCPP_INFO(get_logger(), "LED panel se ha iniciado correctamente.");
         }
     private:
-        std::vector<int64_t> led_panel_{0, 0, 0};
+        
+        std::vector<int64_t> led_panel_{};
         rclcpp::Service<my_robot_interfaces::srv::SetLed>::SharedPtr server_{};
         rclcpp::Publisher<my_robot_interfaces::msg::LedStates>::SharedPtr publisher_{};
         rclcpp::TimerBase::SharedPtr timer_{};
@@ -39,7 +42,7 @@ class LedPanelNode : public rclcpp::Node{
  
 int main(int argc, char **argv){
     rclcpp::init(argc, argv);
-    auto node = std::make_shared<LedPanelNode>(); 
+    auto node = std::make_shared<LedPanelParamsNode>(); 
     rclcpp::spin(node);
     rclcpp::shutdown();
     return 0;

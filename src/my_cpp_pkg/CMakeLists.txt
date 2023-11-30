@@ -51,6 +51,15 @@ ament_target_dependencies(battery rclcpp my_robot_interfaces)
 add_executable(led_panel src/actividades/actividad4/led_panel.cpp)
 ament_target_dependencies(led_panel rclcpp my_robot_interfaces)
 
+add_executable(number_publisher_params src/number_publisher_params.cpp)
+ament_target_dependencies(number_publisher_params rclcpp example_interfaces)
+
+add_executable(robot_news_station_params src/actividades/actividad5/robot_news_station_params.cpp)
+ament_target_dependencies(robot_news_station_params rclcpp example_interfaces)
+
+add_executable(led_panel_params src/actividades/actividad5/led_panel_params.cpp)
+ament_target_dependencies(led_panel_params rclcpp my_robot_interfaces)
+
 install(TARGETS 
   cpp_node
   robot_news_station
@@ -65,6 +74,9 @@ install(TARGETS
   hardware_status_publisher
   battery 
   led_panel
+  number_publisher_params
+  robot_news_station_params
+  led_panel_params
   DESTINATION lib/${PROJECT_NAME}
 )
 
