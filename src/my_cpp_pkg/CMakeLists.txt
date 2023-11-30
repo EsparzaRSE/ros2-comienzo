@@ -45,6 +45,12 @@ ament_target_dependencies(call_reset_counter3 rclcpp example_interfaces)
 add_executable(hardware_status_publisher src/hw_status_publisher.cpp)
 ament_target_dependencies(hardware_status_publisher rclcpp my_robot_interfaces)
 
+add_executable(battery src/actividades/actividad4/battery.cpp)
+ament_target_dependencies(battery rclcpp my_robot_interfaces)
+
+add_executable(led_panel src/actividades/actividad4/led_panel.cpp)
+ament_target_dependencies(led_panel rclcpp my_robot_interfaces)
+
 install(TARGETS 
   cpp_node
   robot_news_station
@@ -57,6 +63,8 @@ install(TARGETS
   number_counter3
   call_reset_counter3
   hardware_status_publisher
+  battery 
+  led_panel
   DESTINATION lib/${PROJECT_NAME}
 )
 
