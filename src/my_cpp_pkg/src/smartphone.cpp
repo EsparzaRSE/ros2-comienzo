@@ -1,7 +1,7 @@
 #include "rclcpp/rclcpp.hpp"
 #include "example_interfaces/msg/string.hpp"
  
-class SmartphoneNode : public rclcpp::Node{ 
+class SmartphoneNode : public rclcpp::Node{
     public:
         SmartphoneNode() : Node("smartphone"){ 
             subscriber_ = create_subscription<example_interfaces::msg::String>

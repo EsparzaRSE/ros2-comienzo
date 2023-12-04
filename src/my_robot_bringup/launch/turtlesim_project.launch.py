@@ -17,8 +17,13 @@ def generate_launch_description():
             {"turtle_name_prefix": "NinjaTurtle"}
         ],
     )
+    tortuga_controller_node = Node(
+        package="turtlesim_project_pkg",
+        executable="tortuga_controller",
+    )
 
     ld.add_action(turtlesim_node)
     ld.add_action(tortuga_spawner_node)
+    ld.add_action(tortuga_controller_node)
 
     return ld
