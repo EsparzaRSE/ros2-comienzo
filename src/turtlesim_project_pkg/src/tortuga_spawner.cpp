@@ -42,9 +42,11 @@ class TortugaSpawnerNode : public rclcpp::Node{
             array_tortugas_.lista_tortugas.push_back(tortugaRandomGenerator());
             request_spawn->x = array_tortugas_.lista_tortugas.back().x;
             request_spawn->y = array_tortugas_.lista_tortugas.back().y;
+            request_spawn->theta = array_tortugas_.lista_tortugas.back().theta;
             request_spawn->name = array_tortugas_.lista_tortugas.back().nombre;
 
             auto future{client_spawn->async_send_request(request_spawn)};
+
             try{
                 auto response{future.get()};
                 RCLCPP_INFO(get_logger(), "Llamada al servicio correcta");
@@ -62,6 +64,16 @@ class TortugaSpawnerNode : public rclcpp::Node{
 
         void callbackCatchTortuga(const my_robot_interfaces::srv::CatchTortuga::Request::SharedPtr request){
          
+            auto it = std::find_if(array_tortugas_.lista_tortugas.begin(), array_tortugas_.lista_tortugas.end(),
+                             [&request](const auto& tortuga) { return tortuga.nombre == request->nombre; });
+
+            if (it != array_tortugas_.lista_tortugas.end()){
+                RCLCPP_INFO(this->get_logger(), "Found turtle: %s", it->nombre.c_str());
+                array_tortugas_.lista_tortugas.erase(it);
+                RCLCPP_INFO(this->get_logger(), "Erased turtle: %s", request->nombre.c_str());
+                publishTortugasVivas();  
+            } 
+            
             auto client_kill{create_client<turtlesim::srv::Kill>("kill")};
 
             while(!client_kill->wait_for_service(std::chrono::seconds(1))){
@@ -73,14 +85,8 @@ class TortugaSpawnerNode : public rclcpp::Node{
 
             auto future{client_kill->async_send_request(request_kill)};
 
-            /*auto it = std::find_if(array_tortugas_.lista_tortugas.begin(), array_tortugas_.lista_tortugas.end(),
-                                  [&request](const auto& tortuga) { return tortuga.nombre == request->nombre; });
-
-            if (it != array_tortugas_.lista_tortugas.end()) array_tortugas_.lista_tortugas.erase(it);*/
-
             try{
                 auto response{future.get()};
-                RCLCPP_INFO(get_logger(), "Llamada al servicio correcta");
             }
             catch(const std::exception &e){
                 RCLCPP_ERROR(get_logger(), "La llamada al servicio ha fallado.");
@@ -101,10 +107,12 @@ class TortugaSpawnerNode : public rclcpp::Node{
         my_robot_interfaces::msg::Tortuga tortugaRandomGenerator(){
 
             my_robot_interfaces::msg::Tortuga tortuga{};              
-            std::uniform_real_distribution<float> distribution(0.5, 10.5);
+            std::uniform_real_distribution<float> distribution(0.0, 10.0);
+            std::uniform_real_distribution<float> theta_distribution(0.0, 1.0);
 
             tortuga.x = distribution(generador_);
             tortuga.y = distribution(generador_);
+            tortuga.theta = theta_distribution(generador_) * 2 * M_PI;
             tortuga.nombre = prefijo_tortuga_ + std::to_string(contador_tortugas_++);
 
             return tortuga;              

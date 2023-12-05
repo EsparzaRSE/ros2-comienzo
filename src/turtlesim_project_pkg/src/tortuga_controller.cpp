@@ -17,7 +17,6 @@ class TortugaControllerNode : public rclcpp::Node{
         
         
     private:  
-
         rclcpp::Subscription<turtlesim::msg::Pose>::SharedPtr subscriber_pose_;
         rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr publisher_cmd_vel_;
         rclcpp::Subscription<my_robot_interfaces::msg::TortugaArray>::SharedPtr subscriber_tortugas_vivas_;
@@ -54,8 +53,8 @@ class TortugaControllerNode : public rclcpp::Node{
             }
 
             geometry_msgs::msg::Twist command;
-            command.linear.x = 1.4 * error_distance;
-            command.angular.z = 4.0 * error_angle;
+            command.linear.x = 0.7 * error_distance;
+            command.angular.z = 3.8 * error_angle;
 
             publisher_cmd_vel_->publish(command);
         }

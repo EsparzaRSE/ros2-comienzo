@@ -1,79 +1,75 @@
 #include "rclcpp/rclcpp.hpp"
-#include "my_robot_interfaces/msg/tortuga.hpp"
 #include "my_robot_interfaces/msg/tortuga_array.hpp"
-#include "turtlesim/srv/spawn.hpp"
-#include <random>
+#include "my_robot_interfaces/srv/catch_tortuga.hpp"
+#include "turtlesim/msg/pose.hpp"
+#include "geometry_msgs/msg/twist.hpp"
+#include <cmath>
  
-class TortugaSpawnerNode : public rclcpp::Node{ 
+class TortugaControllerNode : public rclcpp::Node{ 
     public:
-        TortugaSpawnerNode() : Node("tortuga_spawner"), generador(std::random_device{}()){
-            declare_parameter("spawn_frequency", 1.0);
-            declare_parameter<std::string>("turtle_name_prefix");
-            frecuencia_spawn_ = get_parameter("spawn_frequency").as_double();
-            prefijo_tortuga_ = get_parameter("turtle_name_prefix").as_string();
-            hilo1_ = std::thread(&TortugaSpawnerNode::startSpawn, this);
-            RCLCPP_INFO(get_logger(), "Tortuga spawner se ha iniciado correctamente.");
-            //tortugas_vivas_ = create_publisher<my_robot_interfaces::msg::TortugaArray>("tortugas_vivas", 10);  
+        TortugaControllerNode() : Node("tortuga_controller"){
+            subscriber_pose_ = create_subscription<turtlesim::msg::Pose>(
+                "turtle1/pose", 10, std::bind(&TortugaControllerNode::callbackTurtlePose, this, std::placeholders::_1));
+            publisher_cmd_vel_ = create_publisher<geometry_msgs::msg::Twist>("turtle1/cmd_vel", 10);  
+            subscriber_tortugas_vivas_ = create_subscription<my_robot_interfaces::msg::TortugaArray>(
+                "tortugas_vivas", 10, std::bind(&TortugaControllerNode::callbackTortugasVivas, this, std::placeholders::_1));  
         }
+        
+        
+    private:  
 
-        void startSpawn(){ 
-            
-            timer_ = create_wall_timer(std::chrono::milliseconds(static_cast<int>(1000.0/frecuencia_spawn_)), 
-                                       std::bind(&TortugaSpawnerNode::callSpawn, this));
-        }
+        rclcpp::Subscription<turtlesim::msg::Pose>::SharedPtr subscriber_pose_;
+        rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr publisher_cmd_vel_;
+        rclcpp::Subscription<my_robot_interfaces::msg::TortugaArray>::SharedPtr subscriber_tortugas_vivas_;
+        my_robot_interfaces::msg::TortugaArray array_tortugas_{};
 
-        void callSpawn(){
+        double target_x_{}; 
+        double target_y_{};
 
-            auto client_spawn{create_client<turtlesim::srv::Spawn>("spawn")};
+        void callbackTurtlePose(const turtlesim::msg::Pose::SharedPtr msg){
 
-            while(!client_spawn->wait_for_service(std::chrono::seconds(1))){
-                RCLCPP_WARN(get_logger(), "Esperando a que el servidor esté disponible...");
-            }
+            double error_distance = std::sqrt(std::pow(target_x_ - msg->x, 2) + std::pow(target_y_ - msg->y, 2));
+            double error_angle = std::atan2(target_y_ - msg->y, target_x_ - msg->x) - msg->theta;
 
-            auto request_spawn{std::make_shared<turtlesim::srv::Spawn::Request>()};
+            if (error_distance < 0.1) {  // umbral de distancia
 
-            array_tortugas_.lista_tortugas.push_back(tortugaRandomGenerator());
-            request_spawn->x = array_tortugas_.lista_tortugas.back().x;
-            request_spawn->y = array_tortugas_.lista_tortugas.back().y;
-            request_spawn->name = array_tortugas_.lista_tortugas.back().nombre;
+                auto client_catch_tortuga{create_client<my_robot_interfaces::srv::CatchTortuga>("catch_tortuga")};
 
-            auto future{client_spawn->async_send_request(request_spawn)};
-            
-            try{
+                while(!client_catch_tortuga->wait_for_service(std::chrono::seconds(1))){
+                    RCLCPP_WARN(get_logger(), "Esperando a que el servidor esté disponible...");
+                }
+
+                auto request_catch_tortuga{std::make_shared<my_robot_interfaces::srv::CatchTortuga::Request>()};
+                request_catch_tortuga->nombre = array_tortugas_.lista_tortugas.begin()->nombre;
+
+                auto future{client_catch_tortuga->async_send_request(request_catch_tortuga)};
+
+                try{
                 auto response{future.get()};
                 RCLCPP_INFO(get_logger(), "Llamada al servicio correcta");
+                }
+                catch(const std::exception &e){
+                    RCLCPP_ERROR(get_logger(), "La llamada al servicio ha fallado.");
+                }            
             }
-            catch(const std::exception &e){
-                RCLCPP_ERROR(get_logger(), "La llamada al servicio ha fallado.");
-            }  
+
+            geometry_msgs::msg::Twist command;
+            command.linear.x = 0.8 * error_distance;
+            command.angular.z = 4.0 * error_angle;
+
+            publisher_cmd_vel_->publish(command);
         }
-      
-    private:
-        //rclcpp::Publisher<my_robot_interfaces::msg::TortugaArray>::SharedPtr tortugas_vivas_{};
-        std::thread hilo1_{};
-        rclcpp::TimerBase::SharedPtr timer_{};
-        my_robot_interfaces::msg::TortugaArray array_tortugas_{};
-        double frecuencia_spawn_{};
-        int contador_tortugas_{0};
-        std::string prefijo_tortuga_{};
-        std::default_random_engine generador;
 
-        my_robot_interfaces::msg::Tortuga tortugaRandomGenerator(){
-
-            my_robot_interfaces::msg::Tortuga tortuga{};              
-            std::uniform_real_distribution<float> distribution(0.0, 11.0);
-
-            tortuga.x = distribution(generador);
-            tortuga.y = distribution(generador);
-            tortuga.nombre = prefijo_tortuga_ + std::to_string(contador_tortugas_++);
-
-            return tortuga;              
-        }
+        void callbackTortugasVivas(const my_robot_interfaces::msg::TortugaArray::SharedPtr msg){
+            array_tortugas_.lista_tortugas = msg->lista_tortugas;
+            target_x_ = msg->lista_tortugas.begin()->x; 
+            target_y_ = msg->lista_tortugas.begin()->y;    
+        } 
 };
  
 int main(int argc, char **argv){
     rclcpp::init(argc, argv);
-    auto node = std::make_shared<TortugaSpawnerNode>(); 
+    auto node = std::make_shared<TortugaControllerNode>(); 
     rclcpp::spin(node);
     rclcpp::shutdown();
     return 0;
