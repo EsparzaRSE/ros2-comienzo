@@ -10,8 +10,6 @@
 #include "my_robot_interfaces/srv/catch_tortuga.hpp"
 #include <random>
 
-// Incluye otros headers necesarios
-
 class TortugaSpawner2Node : public rclcpp::Node{ 
     public:
         TortugaSpawner2Node();
