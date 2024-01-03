@@ -2,6 +2,10 @@
 
 Este repositorio contiene apuntes y ficheros (enfocados en C++) utilizados en el primer contacto con ROS2, un sistema operativo de robótica flexible y poderoso. Se tratan los conceptos esenciales de ROS2 y proporciona un punto de partida sólido para desarrollar aplicaciones robóticas.
 
+## Descargar o consultar los apuntes y documentos relacionados con el repositorio
+
+Se pueden consultar o descargar los apuntes y otros documentos de este repositorio en el siguiente enlace de google drive: [ROS2 Comienzo](https://drive.google.com/drive/folders/13paoMm4UFvVAeQwvcPlumXK1CglSB8m2?usp=sharing)
+
 ## Contenido
 
 ### 1. Introducción a ROS2
